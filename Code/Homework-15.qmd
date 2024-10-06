@@ -1,0 +1,187 @@
+---
+title: "Homework 15"
+format: html
+editor: visual
+---
+
+Homework 15 - Working through chapter 3 in the GSWR book.
+
+## Set up
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(here)
+library(dplyr)
+library(ggplot2)
+```
+
+Import dataset
+
+```{r}
+compensation <- read.csv(here("Data", "compensation.csv"))
+```
+
+# Working through Chapter 3
+
+```{r}
+glimpse(compensation) #Look at the data
+```
+
+The summary() function
+
+```{r}
+#get summary statistics for the compensation variables
+summary(compensation)
+```
+
+About the data: shows the root widths in mm and the fruit production in kg. The grazing refers to the part of orchard with grazing, while another part did not have any grazing (grazing could influence grass and apple tree competition).
+
+# Subsetting
+
+## Using **select()**
+
+Select grabs columns.
+
+```{r}
+select(compensation, Fruit) #Use/get the Fruit column
+```
+
+```{r}
+select(compensation, -Root) #use a minus sign to get all columns except for the one specified
+```
+
+## Using **slice()**
+
+Slice grabs rows
+
+```{r}
+slice(compensation, 2) #grabs row 2 from the data frame
+```
+
+```{r}
+slice(compensation, 2:10) #grabs rows 2 through 10, a sequence
+```
+
+```{r}
+slice(compensation, c(2, 3, 10)) #use the c() to grab a discontinous set of rows
+```
+
+## Using **filter()**
+
+```{r}
+#first going over logical operators
+with(compensation, Fruit > 80) 
+#with() tells R to look in the data frame and do what comes next, then stop looking
+
+#true and false indicates where in that column the > 80 is true and where it's false
+```
+
+```{r}
+#find the rows where it is true that Fruit is >80 return them as a data frame
+filter(compensation, Fruit > 80)
+```
+
+```{r}
+filter(compensation, Fruit > 80 | Fruit < 20) #keep rows where fruit is greater than 80 or less than 20 using the Boolean OR symbol |
+```
+
+```{r}
+#VERY IMPORTANT
+
+lo_hi_fruit <- filter(compensation, Fruit > 80 | Fruit < 20) #use an assignment operator so you can use the results (rows gotten that apply to the condition specified) in future commands
+
+lo_hi_fruit #look at the object the results are assigned to
+```
+
+# Transforming
+
+```{r}
+#what does compensation look like now?
+head(compensation)
+```
+
+## Using mutate
+
+```{r}
+# Use mutate
+# log(Fruit) is in the column logFruit
+# all of which gets put into the object compensation
+compensation <- mutate(compensation, logFruit = log(Fruit)) 
+
+#first 6 rows of the new compensation
+head(compensation)
+```
+
+# Sorting
+
+## Using arrange()
+
+```{r}
+arrange(compensation, Fruit) #arranges the column Fruit in order of increasing fruit production (increasing order)
+```
+
+*Why use arrange() –\>* order rows in increasing order for either visual preference or for analyses that need a specific order, such as time series analyses that need data in correct temporal order
+
+# Top Tips from the chapter
+
+Tip 1 - you can use more than one dplyr function in one line of code
+
+```{r}
+# want to see fruit production >80 and the rootstock widths only -- use both filter and select
+
+# Root values from Fruit > 80 subset
+select(filter(compensation, Fruit > 80), Root) 
+#inside the parantheses means to do that first
+```
+
+Tip 2 - Using the pipe command
+
+*Note -* remember to always start with the data frame when using dplyer
+
+```{r}
+# Root values from Fruit > 80 subset via piping
+compensation %>% #work with the compensation data
+  filter(Fruit > 80) %>% #filter it based on the fruit column and get all rows where Fruit > 80 is true
+  select(Root) #take the results from filter and return only the Root column as the final data frame
+```
+
+# Calculating summary stats about groups of your data
+
+Functions that help you generate custom summaries of your data
+
+## Method 1 - Nested, no pipe
+
+```{r}
+summarise(
+  group_by(compensation, Grazing), meanFruit = mean(Fruit))
+# group_by declares Grazing as the grouping variable (can have multiple)
+# get the mean with mean(Fruit) with meanFruit used as the word for the output
+```
+
+```{r}
+# Remember that if want to use these results in other commands must assign them to an object with <-
+
+mean.fruit <- summarise(
+  group_by(compensation, Grazing), meanFruit = mean(Fruit))
+```
+
+## Method 2 - Pipe, no nesting
+
+```{r}
+#Start with the data, divide it into groups, and calculate the mean of the fruit data in each group
+compensation %>%
+  group_by(Grazing) %>%
+  summarise(meanFruit = mean(Fruit))
+```
+
+## Summary
+
+```{r}
+compensation %>%
+  group_by(Grazing) %>%
+  summarise(
+    meanFruit = mean(Fruit),
+    sdFruit = sd(Fruit)
+  )
+```
