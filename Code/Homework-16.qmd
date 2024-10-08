@@ -1,0 +1,198 @@
+---
+title: "Homework 16 due Oct 9"
+format: html
+editor: visual
+---
+
+# Reinforcing GSWR Chp 3 and in class work
+
+Set up
+
+```{r}
+rm(list=ls())
+library(tidyverse) #includes dplyer
+library(here)
+```
+
+Import data and create dataframe
+
+```{r}
+cover <- read.csv(here("Data", "donnerville_percent_cover.csv"))
+```
+
+Examine data set
+
+```{r}
+glimpse(cover)
+str(cover)
+```
+
+## Change column names
+
+Changing column name of cover_type to be uppercase and match other names better
+
+```{r}
+colnames(cover)[8] <- "Cover.type" 
+#colnames(data frame)[the column in question] <- "the new name"
+```
+
+## Change data types
+
+Make Site, Plot type, and Cover type into factor variables
+
+```{r}
+cover$Site <- as.factor(cover$Site)
+cover$Plot.type <- as.factor(cover$Plot.type)
+cover$Cover.type <- as.factor(cover$Cover.type)
+
+glimpse(cover)
+```
+
+Make Date into a date variable
+
+```{r}
+cover$Date <- as.Date(cover$Date)
+```
+
+Never mind the above, need to use **lubridate** instead
+
+```{r}
+cover$Date <- dmy(cover$Date) #dmy means day, month, year - how the date is entered in the table
+# R then coverted the dates to year, month, day format
+```
+
+## Error checking
+
+Need to edit Site (currently has 7 levels, should have 3), Cover type (currently has 6 levels, should have 3)
+
+```{r}
+#For Donnerville 1
+
+levels(cover$Site)
+fix1 <- which(cover$Site %in% c("DONNERVILLE - 1", "donnerville 1", "Donnerville 1")) #identifies the rows that need repair (all those with these names) and assigns them to the fix1 object
+
+cover$Site[fix1] <- "Donnerville 1" #apply the object to change the values
+
+cover$Site <-factor(cover$Site) #tells R to relist the levels of factor b/c have changed
+
+levels(cover$Site)
+```
+
+```{r}
+#Now for Donnerville 2
+
+fix2 <- which(cover$Site %in% c("donnerville 2", "Donnerville 2"))
+
+cover$Site[fix2] <- "Donnerville 2"
+
+cover$Site <- factor(cover$Site)
+
+levels(cover$Site)
+```
+
+```{r}
+#Now for Donnerville 3
+#Try a diff way from class using logical operator ==
+
+fix3 <- which(cover$Site == "donnerville-3")
+
+cover$Site[fix3] <- "Donnerville 3"
+
+cover$Site <- factor(cover$Site)
+
+levels(cover$Site) 
+#Success!
+```
+
+Now to edit Cover type column
+
+```{r}
+levels(cover$Cover.type) 
+```
+
+```{r}
+#Start with Bare
+
+fix4 <- which(cover$Cover.type == "bare")
+
+cover$Cover.type[fix4] <- "Bare"
+
+cover$Cover.type <- factor(cover$Cover.type)
+levels(cover$Cover.type)
+```
+
+```{r}
+#Now Bryophytes
+
+fix5 <- which(cover$Cover.type == "bryophtes")
+
+cover$Cover.type[fix5] <- "Bryophytes"
+
+cover$Cover.type <- factor(cover$Cover.type)
+levels(cover$Cover.type)
+```
+
+```{r}
+#Lastly, Vascular
+
+fix6 <- which(cover$Cover.type == "vasc ")
+
+cover$Cover.type[fix6] <- "Vascular"
+
+cover$Cover.type <- factor(cover$Cover.type)
+levels(cover$Cover.type)
+```
+
+## 
+
+## Determine average percent cover by cover type (bare, bryophytes, vascular plants) for Donnerville 1
+
+```{r}
+summarise(
+  group_by(cover, Site, Cover.type), meanPercent = mean(Percent)
+)
+
+# What's going on in each line
+# summarise according to the following directions
+# group_by (the data frame, the columns to sort output by), mean Percent is telling what math to do and what column to do it with
+```
+
+In Donnerville 1, the average cover type for Bare is 77.5%, for Bryophytes is 2.5%, for Vascular is 20%
+
+Testing to see if I can change the output to only show Donnerville 1
+
+```{r}
+summarise(
+  group_by(cover, "Donnerville 1", Cover.type), meanPercent = mean(Percent)
+)
+#If I replace Site column with just "Donnerville 1" will it give same output but just the Donnerville 1 rows?
+```
+
+Seemed to work but gave me different numbers... not sure why
+
+## Determine the average percent vascular plant cover across all sites
+
+```{r}
+cover %>% 
+  group_by(Cover.type)%>% 
+  summarise(meanPercent = mean(Percent)) 
+
+# line by line what's going on:
+# use the cover data frame
+# group it by the variable cover type (group into Bare, Bryophytes, Vascular)
+# take the average/mean of each of these cover types (across all sites b/c don't have anything about site in this)
+
+```
+
+The average percent of vascular plant cover across all sites is 16.667%.
+
+Testing to see if I can get the output to just be vascular plants (not the other two cover types as well)
+
+```{r}
+cover %>% 
+  group_by(Cover.type)%>%
+  group_by("Vascular")%>%
+  summarise(meanPercent = mean(Percent)) 
+```
+
+Gave me just vascular but it definitely didn't work to give the correct average percent cover.
