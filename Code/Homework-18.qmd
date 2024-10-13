@@ -1,0 +1,207 @@
+---
+title: "Homework 18"
+format: html
+editor: visual
+---
+
+## GSWR Chapter 4 - Visualizing Your Data
+
+Will go over how to use ggplot functions to make a scatterplot, box and whiskers plot, and histogram.
+
+Set up
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(here)
+```
+
+Read in data
+
+```{r}
+compensation <- read.csv(here("Data", "compensation.csv"))
+```
+
+## Grammar for graphics
+
+```{r}
+ggplot(compensation, aes(x = Root, y = Fruit)) + 
+  geom_point()
+
+#function ggplot (dataframe, aes(define which variable is x and which is y)) + 
+  #geom_point() adds the geometric layer points
+
+#aes is function to define the graph's aesthetics
+#use the + and then return to add layers and components to the graph
+#This graph has 2 layers
+```
+
+# Scatterplots
+
+```{r}
+glimpse(compensation) #check out the data
+```
+
+```{r}
+#COPIED FROM ABOVE
+
+ggplot(compensation, aes(x = Root, y = Fruit)) + 
+  geom_point()
+
+#function ggplot (dataframe, aes(define which variable is x and which is y)) + 
+  #geom_point() adds the geometric layer points
+
+#aes is function to define the graph's aesthetics
+#use the + and then return to add layers and components to the graph
+#This graph has 2 layers
+
+#positive relationship, 2 groups of points corresponding with the grazed and ungrazed treatments
+```
+
+## How to customize the figure
+
+The grey background
+
+```{r}
+ggplot(compensation, aes(x = Root, y = Fruit)) + 
+  geom_point() +
+  theme_bw()
+
+#Added another layer with the black and white theme which gets rid of the grey.
+
+```
+
+Increase the size of the points
+
+```{r}
+ggplot(compensation, aes(x = Root, y = Fruit)) +
+  geom_point(size = 5) +
+  theme_bw()
+
+#Added (size = 5) after geom_point to make the points bigger
+```
+
+Alter x and y axis labels
+
+```{r}
+ggplot(compensation, aes(x = Root, y = Fruit)) +
+  geom_point(size = 5) +
+  xlab("Root Biomass") +
+  ylab("Fruit Production") +
+  theme_bw()
+
+#Added xlab and ylab with the new name in ("") as layers
+```
+
+Adjust the colors of the points to match levels in a group
+
+```{r}
+ggplot(compensation, aes(x = Root, y = Fruit, colour = Grazing)) +
+  geom_point(size = 5) +
+  xlab("Root Biomass") +
+  ylab("Fruit Production") +
+  theme_bw()
+
+#Added colour = Grazing (the variable in question) to the parentheses after aes() to differentiate by color
+```
+
+Also/or change the shape of the points for the grazing levels
+
+```{r}
+ggplot(compensation, aes(x = Root, y = Fruit, shape = Grazing)) +
+  geom_point(size = 5) +
+  xlab("Root Biomass") +
+  ylab("Fruit Production") +
+  theme_bw()
+```
+
+# Box-and-whisker plots
+
+```{r}
+ggplot(compensation, aes(x = Grazing, y = Fruit)) +
+  geom_boxplot() +
+  xlab("Grazing treatment") +
+  ylab("Fruit Production") +
+  theme_bw()
+
+#Same as before start by declaring data frame and aesthetics, and which variables to use for each axis
+#Grazing is a categorical variable with two levels
+#Then tell waht type of plot to add on top (box and whiskers here)
+#Then tell it what to label the x and y axes
+#Then make the theme black and white so no gray background
+```
+
+More code to expand on the above:
+
+```{r}
+ggplot(compensation, aes(x = Grazing, y = Fruit)) +
+  geom_boxplot() +
+  geom_point(size = 4, colour = "lightgrey", alpha = 0.5) +
+  xlab("Grazing treatment") +
+  ylab("Fruit Production") +
+  theme_bw()
+
+#Alpha means transparency
+#Added points as well as box and whiskers to show better the display of data, median, and spread
+```
+
+# Histograms
+
+-   "divides data into 'bins' then counts observations in each bin, then plots these counts" (page 88)
+
+-   Only need to define the x variable/axis because the computer comes up the y variable/axis
+
+```{r}
+#Histogram of fruit production
+
+ggplot(compensation, aes(x = Fruit)) +
+  geom_histogram()
+
+#Note that this message popped up with this code:
+
+# `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+## This is "an ugly histogram of fruit production" (page 88)
+```
+
+Need to change the binwidth ("how wide each bar is in "fruit units") or change the number of bins
+
+```{r}
+ggplot(compensation, aes(x = Fruit)) +
+  geom_histogram(bins = 10)
+
+OR 
+
+ggplot(compensation, aes(x = Fruit)) +
+  geom_histogram(binwidth = 15)
+```
+
+## Facets
+
+"Faceting, or latticing, is about producing a matrix of graphs, automatically structured by a factor/categorical variable in your data" (pg 89)
+
+Works for almost all graphics in ggplot2
+
+*For example, dividing the fruit data by the Grazing treatment and getting two histograms*
+
+```{r}
+ggplot(compensation, aes(x = Fruit)) +
+  geom_histogram(binwidth = 15) +
+  facet_wrap(~Grazing)
+
+#the ~ symbol precedes the grouping variable
+
+ggsave("ThatCoolHistogramOfFruit.png") #Saved this figure - it saved under the code folder
+```
+
+# Saving graphs for putting figures elsewhere
+
+2 ways:
+
+1.  Plots tab – export
+    1.  Can save image file types, save to PDF, copy figure to clipboard
+2.  ggsave()
+    1.  saves the figure in the Plots window to a specified file name
+    2.  Creates the file type based on your file name (\_\_\_.png)
+
+ggsave("ThatCoolHistogramOfFruit.png") – it ended up being saved in the code folder
