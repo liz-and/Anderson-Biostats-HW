@@ -1,0 +1,33 @@
+---
+title: "homework feedback"
+format: html
+editor: visual
+---
+
+## Homework feedback
+
+### Homework 16
+
+
+I like that you changed column name. You an also look up `rename` and see what it does.
+
+Line 54 making a date variable - consider using `lubridate` and the `mdy` or similar function from it. Easier.
+
+OK! I should have read further down the page\!😅
+
+Line 150 - work on using piping to get the job done - your code will be much easier for future you (and me!) to read.
+
+Line 171 - you need a filter rather than grouping by Donnerville 1. Try this:
+```{r}
+cover |> filter(Site == "Donnerville 1") |> group_by(Cover.type) |> summarise(
+  meanPercent = mean(Percent)
+)
+```
+Make sense?
+
+Line 192 - again, you need a filter, rather than 2 group_bys.
+
+I REALLY REALLY LIKE that you are writing down both what you are thinking about (what works, what doesn't, what coding "experiments" you are trying) as well as annotating the code itself with comments. Excellent.
+
+### Homework 18
+Nice. And again, great job with the notes you are making in your .qmd. That is exactly what I'm looking for.
