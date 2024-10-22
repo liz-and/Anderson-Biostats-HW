@@ -39,7 +39,7 @@ How would you describe the mean_SOM data based on viewing the histogram? Write y
 SOM <- soil |>
   group_by(Forest) |>
   summarise(mean_SOM = mean(SOM_percent), sd_SOM = sd(SOM_percent))
-# checked back to HW 15 - remember this is the format to use for summarizing and means!
+# checked back to HW 15 - this is the format to use for summarizing and means!
 
 ```
 
@@ -55,10 +55,16 @@ ggplot(SOM, aes(Forest, mean_SOM))+
 
 Based on what you see in the bar chart, how would you describe the pattern of SOM between the 4 different forests? Write your answer here:
 
+*The soil organic matter is unequal between the forests, with the Kip Tract having much more than all the others, the Degrasse less, and Donnerville and South Hammond in between.*
+
 Now create a boxplot of the SOM_percent data. Use Forest as the x-axis variable and overlay the point data on top of the boxplot. Make the points blue and somewhat transparent. Call the x-axis "Forest name" and the y-axis "Percent soil organic matter" (hint: See homework 18...).
 
 ```{r}
-
+ggplot(soil, aes(x = Forest, y = SOM_percent))+
+  geom_boxplot()+
+  geom_point(colour = "blue", alpha = 0.75)+
+  xlab("Forest name")+
+  ylab("Percent soil organic matter")
 
 ```
 
@@ -66,6 +72,12 @@ Based on what you see in the box plot, write out your answers the following ques
 
 -   how would you describe the pattern of SOM between the 4 different forests?
 
+*Soil organic matter is more loosely distributed on the kip tract, with some low points and some high points. The other three are much more tightly distributed, with the exception of the outlier in the Donnerville forest.*
+
 -   What do you notice that is different from how the data were displayed in the bar plot?
 
+*With the box plot you can see all the points in the dataset. You can see the points along the error bars that deviate from the median and how they are distributed (many on the Kip Tract, and only one for Donnerville).*
+
 -   Which plot type is more informative? Explain your answer.
+
+*The box plot is more informative because you can clearly see the distribution of all the points, not just their means and standard errors. This gives the viewer a better sense of the data (whether its many or just one point that lead to the patterns in the descriptive statistics, smaller differences between each forest, and so on). There is more to look at and think about with the box plot.*
