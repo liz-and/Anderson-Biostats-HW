@@ -8,8 +8,6 @@ editor: visual
 
 Will go over how to use ggplot functions to make a scatterplot, box and whiskers plot, and histogram.
 
-Test
-
 Set up
 
 ```{r}
