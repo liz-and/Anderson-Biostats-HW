@@ -81,3 +81,9 @@ Based on what you see in the box plot, write out your answers the following ques
 -   Which plot type is more informative? Explain your answer.
 
 *The box plot is more informative because you can clearly see the distribution of all the points, not just their means and standard errors. This gives the viewer a better sense of the data (whether its many or just one point that lead to the patterns in the descriptive statistics, smaller differences between each forest, and so on). There is more to look at and think about with the box plot.*
+
+Having issues with committing and pushing so seeing if this will work...
+
+```{r}
+git config pull.rebase false #Used this in the terminal and I think it worked
+```
