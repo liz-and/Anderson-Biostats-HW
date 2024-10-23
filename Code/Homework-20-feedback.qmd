@@ -1,0 +1,31 @@
+---
+title: "Homework 20 feedback"
+format: html
+editor: visual
+---
+
+Think about spacing your code differently to improve readability. For example, you had this code in your homework:
+
+```{r}
+SOM <- soil |>
+  group_by(Forest) |>
+  summarise(mean_SOM = mean(SOM_percent), sd_SOM = sd(SOM_percent))
+# checked back to HW 15 - this is the format to use for summarizing and means!
+
+```
+
+I mad a few adjustments to this which is a bit easier to read:
+
+
+```{r}
+SOM <- soil |>
+  group_by(Forest) |>
+  summarise(
+    mean_SOM = mean(SOM_percent), 
+    sd_SOM = sd(SOM_percent))
+# checked back to HW 15 - this is the format to use for summarizing and means!
+
+```
+
+
+Otherwise, looks great!
