@@ -41,6 +41,23 @@ SOM <- soil |>
   summarise(mean_SOM = mean(SOM_percent), sd_SOM = sd(SOM_percent))
 # checked back to HW 15 - this is the format to use for summarizing and means!
 
+
+```
+
+[**In class addition:**]{.underline}
+
+Now summarize nitrogen (and figure out what to do with N/A)
+
+```{r}
+Nit <- soil |>
+  group_by(Forest) |>
+  summarise(mean_n = mean(Nitrate_N_ppm))
+
+#Because this column has N/A in a lot of rows, R can't calculate mean without further instructions (see below)
+
+Nit <- soil |>
+  group_by(Forest) |>
+  summarise(mean_n = mean(Nitrate_N_ppm, na.rm= T), sd_n = sd(Nitrate_N_ppm, na.rm= T)) #adding na.rm=T tells it to remove any N/A's that it finds
 ```
 
 5.  Now run the following code chunk which will create a bar plot of mean soil organic matter per forest, with standard deviation as error bars.

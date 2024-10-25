@@ -1,0 +1,181 @@
+---
+title: "Homework 21"
+format: html
+editor: visual
+---
+
+# GSWR Chapter 5 first half
+
+Set up
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(here)
+```
+
+# Chi-square contingency table analysis
+
+## Notes and set up
+
+-   Test of association among two or more categorical variables
+
+-   Have set of observations and can classify them by more than one categorical variable with levels
+
+-   tests against null hypothesis of no association
+
+-   not directional results
+
+Ladybird data: frequency of black and red ladybirds in industrial and rural habitats (two grouping variables each with two levels) - are dark morphs more likely in dark industrial habitats
+
+Question: "is some feature of the habitat associated with the frequencies of different color morphs?"
+
+```{r}
+#Read in data
+lady <- read.csv(here("Data", "ladybirds.csv"))
+```
+
+```{r}
+#Look at it
+glimpse(lady)
+#Need to change from character data to factor
+```
+
+```{r}
+#Need to change from character data to factor
+lady$Habitat <- as.factor(lady$Habitat)
+lady$Site <- as.factor(lady$Site)
+lady$colour <- as.factor(lady$colour)
+#Re-ran glimpse to verify after each one
+```
+
+## Organizing the data for plotting and analysis
+
+-   Need to calculate totals - four numbers - sums of observations of each color in each habitat
+
+```{r}
+totals <- lady |>
+  group_by(Habitat, colour) |>
+  summarise(total.number = sum(number))
+```
+
+Make a **bar chart** to summarize (only time recommended for summarizing data)
+
+```{r}
+ggplot(totals, aes(x = Habitat, y = total.number, fill = colour)) +
+  geom_bar(stat = 'identity', position = 'dodge')+
+  scale_fill_manual(values = c(black = "black", red = "red"))
+
+#Using a bar chart here because it's not data points being used (that would have a distribution) it's actual values. There also is a 0 (it's ratio data).
+
+# Use fill = __ when geometry can be filled
+# Stat = 'identity' tells to not calculate anything
+# position = 'dodge' tells to put the two bars in each group next to each other so it doesn't end up stacked
+# Use scale_fill_manual to customize fill colors
+```
+
+The bar graph suggests we will reject the null hyp (that they are equally distributed) because they don't appear equally distributed in the habitats by color.
+
+## Making the x2 (chi squared) test
+
+Need to make a matrix of the total counts (diff from a data frame) using the xtabs() function
+
+```{r}
+lady.mat <- xtabs(number ~ Habitat + colour, data = lady)
+
+#"Cross-tabulate the number column of counts in the lady data frame by the Habitat and colour variables" --> similar to group_by and summarise earlier but end result is a matrix not a data frame
+```
+
+Now chi square test
+
+```{r}
+chisq.test(lady.mat)
+```
+
+Results are a very low p-value so can confidently reject the null hypothesis aka it isn't a chance result and there is some association between the variables
+
+*"We tested the hypothesis that there is an association between color morphs of ladybirds and industrial and rural habitats. Ladybird color morphs are not equally distributed in the two habitats (x2 = 19.1, df = 1, p \< 0.001), with black morphs being more frequent in industrial habitats and red morphs more frequent in rural habitats"*
+
+```{r}
+#See the mechanics of the chi squ test:
+lady.chi <- chisq.test(lady.mat)
+names(lady.chi)
+
+lady.chi$expected
+```
+
+# Two sample t-test
+
+## Notes and set up
+
+-   A comparison of the means of two groups of numeric values
+
+-   Use when sample sizes in each group are small
+
+-   Makes assumptions: normal distribution, variances are equal
+
+**Ozone example:**
+
+Test if there's a difference in mean ozone concentrations between the east and west gardens.
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(here)
+```
+
+```{r}
+ozone <- read.csv(here("Data", "ozone.csv"))
+```
+
+```{r}
+glimpse(ozone)
+
+ozone$Garden.location <- as.factor(ozone$Garden.location)
+ozone$Garden.ID <- as.factor(ozone$Garden.ID)
+```
+
+Now use histogram and facets to plot the data
+
+```{r}
+ggplot(ozone, aes(x = Ozone))+
+  geom_histogram(binwidth = 10)+
+  facet_wrap(~ Garden.location, ncol = 1)+
+  theme_bw()
+```
+
+The peaks of the histograms don't overlap so may reject null hyp, but there is overlap in the graph so need stats to be sure.
+
+Calculate means and st. errors of ozone levels in each location:
+
+```{r}
+Ozone.mean <- ozone|>
+  group_by(Garden.location) |>
+  summarise(mean.ozone = mean(Ozone), stdev.ozone = sd(Ozone))
+```
+
+## The two sample T-test analysis
+
+```{r}
+#Do a t-test
+t.test(Ozone ~ Garden.location, data = ozone)
+
+# "Do ozone levels vary as a function of garden location?" is indicated by ~
+```
+
+Output line by line:
+
+1.  statistical test performed
+2.  Data used
+3.  t-test stat, degrees freedom, p-val
+4.  gives the alternative hypothesis - true difference in means does not equal 0 (this would mean they are the same and could not reject the null) - so we can reject the null
+5.  95% confidence interval = interval around the difference between the two means. (would be 0 if the means were the same), doesn't include 0 so we can reject the null and conclude probably difference between east and west
+6.  Means in each group
+
+Note - Welch = method allows one of the assumptions fo t-test - equal variance - to be relaxed
+
+If need to make a formal test with test for variance could use (get F-stat)
+
+```{r}
+var.test(Ozone ~ Garden.location, data=ozone)
+```
