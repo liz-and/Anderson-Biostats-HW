@@ -62,7 +62,7 @@ totals <- lady |>
 Make a **bar chart** to summarize (only time recommended for summarizing data)
 
 ```{r}
-ggplot(totals, aes(x = Habitat, y = total.number, fill = colour)) +
+ggplot(totals, aes(x = Habitat, y = total.number, fill = )) +
   geom_bar(stat = 'identity', position = 'dodge')+
   scale_fill_manual(values = c(black = "black", red = "red"))
 
