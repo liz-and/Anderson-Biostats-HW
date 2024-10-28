@@ -51,6 +51,14 @@ covid_counts <- vaccines |>
 length(covid_counts$Count) #Gave me an output of [1] 4
 ```
 
+**In class addition:**
+
+```{r}
+class_covid_counts <- vaccines |>
+  group_by(Survival, Vaccination_status) |>
+  summarise(count = length(Survival)) #could put any variable in with length
+```
+
 Now make a bar plot that shows the count data using the `covid_counts` dataframe you just created. Put survival on the x-axis and fill the bars based on vaccination status. Color vaccinated patients in dark green and unvaccinated patients in black. Remove the gray background.
 
 ```{r}
