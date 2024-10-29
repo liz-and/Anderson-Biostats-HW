@@ -1,0 +1,102 @@
+---
+title: "Homework 23 Chp 5 plus notes"
+format: html
+editor: visual
+---
+
+# GSWR 5.4-5.5
+
+General linear models (regression, mult. regression, ANOVA, ANCOVA)
+
+-   Common framework for estimation (least squares)
+
+-   Common set of assumptions centered around normally distributed residuals
+
+## Simple Linear Regression
+
+-   Clear relationship between 2 variables that is easily visualized
+
+-   The explanatory variable is a continuous numeric variable
+
+Set up
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(here)
+```
+
+```{r}
+plant_gr <- read.csv(here("Data", "plant.growth.rate.csv"))
+
+glimpse(plant_gr) #both columns are continuous - could plot with a scatterplot
+```
+
+```{r}
+#Make a scatterplot of the data
+
+ggplot(plant_gr, aes(x=soil.moisture.content, y=plant.growth.rate))+
+  geom_point()+
+  ylab("Plant Growth Rate (mm/week)")+
+  theme_bw()
+```
+
+Interpretation of the scatterplot (It's good to examine data before analysis:)
+
+-   Slope is positive
+
+-   Slope is roughly 30/2 = **15** (get 30 from 50-20 and get 2 from 2-0 which are the ranges of the axes)
+
+-   Intercept is roughly between 15 and 20 mm/week
+
+-   Degrees of freedom = 48 (datapoints \[50\] - parameters \[2\])
+
+Use lm() to fit the model
+
+```{r}
+model_pgr <- lm(plant.growth.rate ~ soil.moisture.content, data=plant_gr)
+
+# "Fit a linear model, where we hypothesize that plant growth rate is a function of soil moisture content, using the variables from the plant_gr data frame"
+```
+
+Install ggfortify
+
+```{r}
+install.packages("ggfortify")
+```
+
+```{r}
+library(ggfortify)
+```
+
+```{r}
+# Use the autoplot() function which uses the linear model from lm() to create 4 plots
+
+autoplot(model_pgr, smooth.colour = NA)
+
+# smooth.colour = NA used to suppress a wiggly line that is fitted by locally weighted regression
+```
+
+Interpreting the plots
+
+-   All are based around the residuals (errors around the fitted line)
+
+-   Residuals vs fitted –\> tells whether a line is appropriate to fit to the data (if not, will be humps/valleys)
+
+-   Normal Q-Q -\> evaluates the assumption of normality of the residuals (the dots). dashed line is expectation under the normal distribution
+
+-   Scale-Location -\> evaluates the assumption of equal variance. Linear models assume that the variance is constant over all predicted values of the response variable. So there should be no pattern (if there is, maybe the variance increases with the mean)
+
+-   Residuals vs Leverage -\> evaluates leverage (tool to detect influential data points and outliers)
+
+In our data, everything is fine - no patterns where there shouldn't be one, normal distribution assumption met, no points of high influence
+
+[Using anova() and summary()]{.underline}
+
+anova() -\> produces a **sums-of-squares table**; gives F-value for the model (ratio of variance explained by the explanatory variables to the leftover variance); gives estimate of R2 and adjusted R2
+
+summary() -\> produces a table of the estimates of the coefficients of the line that is "the model" - intercept and slope
+
+```{r}
+anova(model_pgr)
+```
