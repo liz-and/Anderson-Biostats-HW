@@ -70,7 +70,7 @@ library(ggfortify)
 ```
 
 ```{r}
-# Use the autoplot() function which uses the linear model from lm() to create 4 plots
+# Use the autoplot() function which uses the linear model from lm() to create 4 plots that tell about how well model assumptions are met
 
 autoplot(model_pgr, smooth.colour = NA)
 
@@ -93,10 +93,43 @@ In our data, everything is fine - no patterns where there shouldn't be one, norm
 
 [Using anova() and summary()]{.underline}
 
-anova() -\> produces a **sums-of-squares table**; gives F-value for the model (ratio of variance explained by the explanatory variables to the leftover variance); gives estimate of R2 and adjusted R2
-
-summary() -\> produces a table of the estimates of the coefficients of the line that is "the model" - intercept and slope
+**anova()** -\> produces a **sums-of-squares table**; gives F-value for the model (ratio of variance explained by the explanatory variables to the leftover variance); gives estimate of R2 and adjusted R2
 
 ```{r}
 anova(model_pgr)
+```
+
+Interpretation:
+
+-   Large F-value (156.08) indicates that the error variance is small relative to the variance attributed to the explanatory variable
+
+-   Large F-val(156.08) and small df(1) means very small p-value(2.2e-16)
+
+**summary()** -\> produces a table of the estimates of the coefficients of the line that is "the model" - intercept and slope
+
+```{r}
+summary(model_pgr)
+```
+
+Interpretation:
+
+-   The first column of the coefficients table gives the intercept (19.348) and slope (12.750) –\> these numbers are very close to the estimates made at the beginning just from looking at the scatterplot
+
+-   T-value and p-value provide tests of whether the slope is different from 0
+
+-   Could report: *"Soil moisture had a positive effect on plant growth. For each unit increase in soil moisture, plant growth rate increased by 12.7 mm/week (slope = 12.7, t=12.5, df = 48, p\<0.001).*
+
+[From Stats Back to Figure]{.underline}
+
+ggplot2 can add regression lines
+
+```{r}
+ggplot(plant_gr, aes(x = soil.moisture.content, y = plant.growth.rate)) +
+  geom_point()+
+  geom_smooth(method = 'lm') +
+  ylab("Plant Growth Rate (mm/week)") +
+  theme_bw()
+
+#geom_smooth(method = "lm") used to add the linear-model fitted line with the standard error of the fit using flash transparent grey onto the graph
+# This works well with single explanatory variable and with intial data exploration but not well with more complicated models
 ```
