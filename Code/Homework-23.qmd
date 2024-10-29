@@ -12,6 +12,8 @@ General linear models (regression, mult. regression, ANOVA, ANCOVA)
 
 -   Common set of assumptions centered around normally distributed residuals
 
+A residual is the difference between the predicted values and the actual values of the response variable (def given by google)
+
 ## Simple Linear Regression
 
 -   Clear relationship between 2 variables that is easily visualized
@@ -51,7 +53,7 @@ Interpretation of the scatterplot (It's good to examine data before analysis:)
 
 -   Degrees of freedom = 48 (datapoints \[50\] - parameters \[2\])
 
-Use lm() to fit the model
+Use lm() to fit the linear model
 
 ```{r}
 model_pgr <- lm(plant.growth.rate ~ soil.moisture.content, data=plant_gr)
