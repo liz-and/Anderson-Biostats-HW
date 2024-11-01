@@ -1,0 +1,122 @@
+---
+title: "Homework 24"
+format: html
+editor: visual
+---
+
+## Overview
+
+For your homework you will implement a data analysis using a dataset on crab growth measurements.
+
+Set things up (hint: there is a new package to add with `library()`)
+
+```{r}
+rm(list=ls())
+library(here)
+library(tidyverse)
+library(ggfortify)
+```
+
+## The data
+
+Let's pull in some data appropriate biologists: crab measurements. This dataset includes measurements of farmed crabs.
+
+```{r}
+crabs <- read.csv(here("Data", "CrabAgePrediction.csv"))
+glimpse(crabs)
+```
+
+One of the variables is categorical - let's fix that in the data.
+
+```{r}
+crabs$Sex <- as.factor(crabs$Sex)
+```
+
+## Question
+
+Is there a relationship between height and weight in female crabs?
+
+1.  Extract the data for just female crabs.
+
+```{r}
+f.crabs <- crabs |>
+  filter(Sex == "F")
+
+```
+
+2.  Examine the response and predictor variables and use the flow chart from class to decide the appropriate statistical analysis (choose from: chi-square, 2-sample t-test or linear regression). Explain your answer here:
+
+*Linear regression because the the predictor variable (height) is continuous ratio data, and so is the response variable (weight). There's only one predictor variable, so that lands us at regression for a test.*
+
+3.  Work through the data analysis **following all of the steps provided in chapter 5 of your book**. You may use class notes or homework keys as a guide.
+
+## Working through data analysis
+
+Prediction: crabs with a greater height will have a greater weight.
+
+Plot with a scatter plot:
+
+```{r}
+ggplot(f.crabs, aes(x=Height, y=Weight))+
+  geom_point()+
+  theme_bw()
+```
+
+[Interpretation of the figure:]{.underline}
+
+Slope is positive
+
+Weight ranges \~ 2 to 76 grams
+
+Height ranges \~ 0.1 to 2.8
+
+Slope estimate is rise over run = 74/2.7 = 27.4074
+
+y-intercept guess is -1.0
+
+[Do the linear regression]{.underline}
+
+First fit the model
+
+```{r}
+model.f.crabs <- lm(Weight ~ Height, data = f.crabs)
+```
+
+Next consider the assumptions
+
+```{r}
+autoplot(model.f.crabs, smooth.colour = NA)
+```
+
+This shows that the data does not really fit all the assumptions. The first plot is not randomly distributed, which means maybe a line is not best to fit to the data. The second plot is focused on the dashed line which is good and shows that the data is normally distributed. The third plot evaluates assumptions of equal variance. Because there's a pattern, the variances are not constant. The last plot shows that there is a point with high leverage (an outlier).
+
+[Tests]{.underline}
+
+```{r}
+anova(model.f.crabs)
+```
+
+*Results of the sums of squares table:*
+
+F-value = 613.57 (large)
+
+P-value is very small
+
+Df = 1
+
+```{r}
+summary(model.f.crabs)
+```
+
+I believe I may have made an error somewhere as this slope (69.289) and intercept (2.295) is rather different from my estimate... Does show that the slope is very different from 0 and is significant.
+
+[Plot again with regression line]{.underline}
+
+```{r}
+ggplot(f.crabs, aes(x = Height, y = Weight))+
+  geom_point()+
+  geom_smooth(method = 'lm')+
+  theme_bw()
+```
+
+Seems like the outlier skewed the regression line.
