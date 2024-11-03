@@ -1,0 +1,190 @@
+---
+title: "Homework 25 - GSWR 5.6 and 5.7"
+format: html
+editor: visual
+---
+
+# 5.6 - Analysis of variance: the one-way ANOVA
+
+## About
+
+-   Explanatory variable is factor/categorical
+
+## Working through an example
+
+Daphnia data
+
+```{r}
+#Set up
+rm(list=ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+
+#Read in data
+daphnia <- read.csv(here("Data", "Daphniagrowth.csv"))
+```
+
+### Question 
+
+Do parasites alter growth rates? Do each of the three parasites reduce growth compared to the control (no parasites)?
+
+#### Workflow 
+
+plot - model - check assumptions - interpret - plot again
+
+```{r}
+glimpse(daphnia)
+
+#change parasite to factor
+daphnia$parasite <- as.factor(daphnia$parasite)
+```
+
+### Plot
+
+Make a box-and-whisker plot (good for viewing variation in a response variable as a function of a grouping, categorical variable)
+
+```{r}
+ggplot(daphnia, aes(x=parasite, y=growth.rate))+
+  geom_boxplot()+
+  theme_bw()
+```
+
+Use coordinate flipping to make the parasite names more readable
+
+```{r}
+ggplot(daphnia, aes(x=parasite, y=growth.rate))+
+  geom_boxplot()+
+  theme_bw()+
+  coord_flip()
+```
+
+#### First interpretations:
+
+-   Substantial variation
+
+-   Control has highest growth rate (1.2 mm/day) so there is an overall difference
+
+-   There is an ordered difference between the other three groups
+
+Estimations of average growth rate:
+
+M. bicuspidata \~ 0.8 / diff from ctrl \~ 0.3
+
+P. perplexa \~ 1.1 / diff from ctrl \~ 0.1
+
+P. ramosa \~ 0.55 / diff from ctrl \~ 0.65
+
+### Construct the ANOVA
+
+First do the same model construction as do for a regression:
+
+```{r}
+model_grow <- lm(growth.rate ~ parasite, data=daphnia)
+```
+
+Then do the same assumption checking with autoplot
+
+```{r}
+autoplot(model_grow, smooth.colour = NA)
+```
+
+These all look good.
+
+Next use the [anova() function]{.underline} (as used in the linear regression)
+
+-   Gives an answer to the first question (is there an effect at all of our treatments?)
+
+```{r}
+anova(model_grow)
+```
+
+-   There is evidence that the parasitic treatment (made up of 4 levels) had an effect on growth rate.
+
+-   The null hyp for a one way ANOVA is that all of the groups come from populations with the same mean
+
+-   F-value: quantifies the ratio of the between-group variance to the within group variance
+
+    -   Large F-value means small p-value (get the large F-value because the between group variance is larger than the within group variance)
+
+### Treatment Contrasts
+
+Contrasts = the "ways" that the information is produced in a summary-like table; a way of expressing coefficients taken from stat models; many types; need to know which type is used to interpret the summary table
+
+Treatment contrasts = the presentation method that R uses
+
+-   Can use these to answer the second question (Do each of the three parasites reduce growth compared to the control (no parasites)?)
+
+```{r}
+# First get the summary table
+summary(model_grow)
+```
+
+Notes:
+
+-   (Intercept) is the control treatment level
+
+-   The levels are presented in alphabetical order (so it's luck that the control was first here)
+
+-   Treatment contrasts report the differences (difference in growth rate) between the reference level (the control) and the other levels (the parasite). this is why they are negative
+
+-   P-values associated with each contrast allow for telling whether the difference between growth rates of parasite treatment and control is significant or not - does a particular parasite reduce growth rate?) – but issue with the "multiple testing problem" - not sure what this is
+
+Can also get the means for each treatment with group_by and summarise, then calculate the contrasts
+
+```{r}
+sumDat <- daphnia |>
+  group_by(parasite)|>
+  summarise(meanGR = mean(growth.rate))
+#Get the means using the above code
+#Then calculate the differences by hand (ex: 1.21-0.73=0.48 for P. ramosa)
+```
+
+Create another figure
+
+```{r}
+ggplot(daphnia, aes(x=parasite, y=growth.rate, colour = parasite))+
+  geom_boxplot()+
+  coord_flip()+
+  theme_bw()
+
+# Got the above plot to work (colored based on parasite treatment), and was able to change to point instead of boxplot, but couldn't get the two point layers to work in the below code.
+
+ggplot(daphnia, aes(x=parasite, y=growth.rate, colour = parasite))+
+  geom_point()+
+  geom_point(sumDat, aes(x=parasite, y=meanGR, shape = meanGR))+
+  coord_flip()+
+  theme_bw()
+```
+
+# 5.7 - Wrapping up
+
+## Take home messages
+
+-   Consistent workflow
+
+-   Make a graph to answer question before doing stat tests
+
+-   Interpret as much as can from graphs before calculating/doing any stats
+
+-   Check is data violate assumptions before interpreting model results
+
+-   Make a graph to communicate results and write a biologically focused sentence to describe results
+
+## Appendix: Getting packages not on CRAN
+
+Options if the package you need isn't on CRAN for some reason
+
+-   Find an older version and download to your computer. Then in R click install button in packages and choose install from: package archive file. Then click browse and find the file, then click install
+
+-   Access packages directly from GitHub with this code:
+
+install.packages("devtools")
+
+library(devtools)
+
+install_github("sinhrks/ggfortify")
+
+-   sinhrks is username of package maintainer and co-author
+
+-   Will give development version
