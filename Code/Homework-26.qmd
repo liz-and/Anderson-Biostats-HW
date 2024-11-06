@@ -1,0 +1,143 @@
+---
+title: "HW 26 - Practice one way ANOVA"
+format: html
+editor: visual
+---
+
+# Practice 1-way ANOVA
+
+### Set up and get the data
+
+```{r}
+rm(list=ls())
+library(here)
+library(tidyverse)
+library(ggfortify)
+```
+
+```{r}
+peas <- read.csv(here("Data", "s_r_pea_sections.csv"))
+```
+
+Look at the data
+
+```{r}
+glimpse(peas)
+```
+
+Change data type
+
+```{r}
+peas$Treatment <- as.factor(peas$Treatment)
+```
+
+### Question:
+
+Is there a difference in the mean pea section lengths between the four treatments? How do each of the other three treatments compare to the control treatment?
+
+### Plot
+
+Make a box and whiskers plot to look at the data
+
+```{r}
+ggplot(peas, aes(x=Treatment, y=pea_section_length_ou))+
+  geom_boxplot()+
+  theme_bw()+
+  coord_flip()
+```
+
+#### First interpretations
+
+Control has a much higher mean pea section length than the other treatments, with 2% sucrose following.
+
+Estimations of means:
+
+-   Control = 71
+
+-   2 percent sucrose = 64
+
+    -   diff from control \~ 7
+
+-   2 percent glucose = 59
+
+    -   diff from control \~ 12
+
+-   2 percent fructose = 56
+
+    -   diff from control \~ 15
+
+-   1 percent fructose 1 percent glucose = 56
+
+    -   diff from control \~ 15
+
+Degrees of freedom = (5-1) = 4
+
+## Run the ANOVA
+
+### Construct a model
+
+```{r}
+model.peas <- lm(pea_section_length_ou ~ Treatment, data = peas)
+```
+
+### Test Assumptions
+
+```{r}
+autoplot(model.peas)
+```
+
+#### Interpretation:
+
+Seems good - residuals vs fitted line is pretty flat, normal Q-Q is close to the sloped line, no major points with leverage
+
+### Run the ANOVA
+
+```{r}
+anova(model.peas)
+```
+
+#### Results:
+
+Df = 4
+
+F-val = 49.368
+
+P-val is small
+
+-   There is a significant difference in the mean pea section lengths between the treatments.
+
+### Treatment Contrasts
+
+```{r}
+summary(model.peas)
+```
+
+#### Interpretation:
+
+The reference treatment that everything's being compared to here is the '1 percent fructose 1 percent glucose', which is not what we want to compare...
+
+This is saying that all the treatments have higher means than the '1 percent fructose 1 percent glucose' treatment. The '2 percent sucrose' and 'control' treatments have a significant difference in mean.
+
+## Now the Tukey HSD Test
+
+activate the multcomp package
+
+```{r}
+library(multcomp)
+```
+
+```{r}
+Tukey.test <- glht(model.peas, linfct = mcp(Treatment = "Tukey"))
+```
+
+```{r}
+summary(Tukey.test)
+```
+
+```{r}
+cld(Tukey.test)
+```
+
+### Interpretation
+
+This test shows that the control treatment has a significant difference in the mean pea section length from the other treatments. '2 percent sucrose' is also significantly different from the other treatments. The other three treatments ('1 percent fructose 1 percent glucose,' '2 percent fructose,' and '2 percent glucose') do not have a significant difference in their means.

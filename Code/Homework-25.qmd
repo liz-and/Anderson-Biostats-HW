@@ -25,11 +25,11 @@ library(ggfortify)
 daphnia <- read.csv(here("Data", "Daphniagrowth.csv"))
 ```
 
-### Question 
+### Question
 
 Do parasites alter growth rates? Do each of the three parasites reduce growth compared to the control (no parasites)?
 
-#### Workflow 
+#### Workflow
 
 plot - model - check assumptions - interpret - plot again
 
@@ -101,6 +101,8 @@ anova(model_grow)
 
 -   There is evidence that the parasitic treatment (made up of 4 levels) had an effect on growth rate.
 
+-   Df is 4-1=3
+
 -   The null hyp for a one way ANOVA is that all of the groups come from populations with the same mean
 
 -   F-value: quantifies the ratio of the between-group variance to the within group variance
@@ -126,7 +128,7 @@ Notes:
 
 -   The levels are presented in alphabetical order (so it's luck that the control was first here)
 
--   Treatment contrasts report the differences (difference in growth rate) between the reference level (the control) and the other levels (the parasite). this is why they are negative
+-   Treatment contrasts report the **differences (difference in growth rate) between the reference level (the control) and the other levels (the parasite).** this is why they are negative
 
 -   P-values associated with each contrast allow for telling whether the difference between growth rates of parasite treatment and control is significant or not - does a particular parasite reduce growth rate?) – but issue with the "multiple testing problem" - not sure what this is
 
