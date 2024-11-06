@@ -29,6 +29,7 @@ Change data type
 
 ```{r}
 peas$Treatment <- as.factor(peas$Treatment)
+levels(peas$Treatment)
 ```
 
 ### Question:
@@ -104,7 +105,7 @@ F-val = 49.368
 
 P-val is small
 
--   There is a significant difference in the mean pea section lengths between the treatments.
+-   There is a significant difference in the mean pea section lengths between the treatments (Table 1. F\[4, 45\] = 49.368, p\<\<0.001).
 
 ### Treatment Contrasts
 

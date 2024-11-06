@@ -75,12 +75,17 @@ P. perplexa \~ 1.1 / diff from ctrl \~ 0.1
 
 P. ramosa \~ 0.55 / diff from ctrl \~ 0.65
 
+df = (4-1)=3
+
+error df = (40-4) = 36
+
 ### Construct the ANOVA
 
 First do the same model construction as do for a regression:
 
 ```{r}
 model_grow <- lm(growth.rate ~ parasite, data=daphnia)
+#lm(response 'is a function of' predictor, data=_____)
 ```
 
 Then do the same assumption checking with autoplot
@@ -109,6 +114,10 @@ anova(model_grow)
 
     -   Large F-value means small p-value (get the large F-value because the between group variance is larger than the within group variance)
 
+"There is a statistically significant effect of parasite treatment on growth rate of daphnia (Table 1, F(3,36 as subscript to say both df)=32.325, p\<\<0.001)
+
+-   Need both df to get the right p-value (I think)
+
 ### Treatment Contrasts
 
 Contrasts = the "ways" that the information is produced in a summary-like table; a way of expressing coefficients taken from stat models; many types; need to know which type is used to interpret the summary table
@@ -130,7 +139,7 @@ Notes:
 
 -   Treatment contrasts report the **differences (difference in growth rate) between the reference level (the control) and the other levels (the parasite).** this is why they are negative
 
--   P-values associated with each contrast allow for telling whether the difference between growth rates of parasite treatment and control is significant or not - does a particular parasite reduce growth rate?) – but issue with the "multiple testing problem" - not sure what this is
+-   P-values associated with each contrast allow for telling whether the difference between growth rates of parasite treatment and control is significant or not - does a particular parasite reduce growth rate?) – but issue with the "multiple testing problem" - not sure what this is *(see notes in notebook from Nov 4 - the concept that just by chance you might get a stat significant result even if there isn't one - this is why you set small p-values)*
 
 Can also get the means for each treatment with group_by and summarise, then calculate the contrasts
 
@@ -152,9 +161,12 @@ ggplot(daphnia, aes(x=parasite, y=growth.rate, colour = parasite))+
 
 # Got the above plot to work (colored based on parasite treatment), and was able to change to point instead of boxplot, but couldn't get the two point layers to work in the below code.
 
+
+#In class code given:
+
 ggplot(daphnia, aes(x=parasite, y=growth.rate, colour = parasite))+
-  geom_point()+
-  geom_point(sumDat, aes(x=parasite, y=meanGR, shape = meanGR))+
+  geom_point(size = 3)+
+  geom_point(data = sumDat, aes(x=parasite, y=meanGR, fill = parasite), shape = 23, size =5)+
   coord_flip()+
   theme_bw()
 ```
