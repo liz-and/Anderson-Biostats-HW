@@ -1,0 +1,151 @@
+---
+title: "30 October 2024 - Regression"
+format: html
+editor: visual
+---
+
+## Overview
+
+For your homework you will implement a data analysis using a dataset on crab growth measurments.
+
+Set things up:
+
+```{r}
+rm(list = ls())
+library(ggfortify) #for evaluating model assumptions
+library(tidyverse)
+library(here)
+```
+
+## The data
+
+Let's pull in some data appropriate biologists: crab measurements. This dataset includes measurements of farmed crabs.
+
+```{r}
+crabs <- read.csv(here("Data/CrabAgePrediction.csv"))
+glimpse(crabs)
+```
+
+One of the variables is categorical - let's fix that in the data.
+
+```{r}
+crabs$Sex <- as.factor(crabs$Sex)
+```
+
+## Question
+
+Is there a relationship between height and weight in female crabs?
+
+1.  Extract the data for just female crabs.
+
+2.  Examine the response and predictor variables and use the flow chart from class to decide the appropriate statistical analysis (choose from: chi-square, 2-sample t-test or linear regression). Explain your answer here:
+
+3.  Work through the data analysis following all of the steps provided in chapter 5 of your book. You may use class notes or homework keys as a guide.
+
+## Plot the data
+
+First get just the female crabs
+
+```{r}
+fcrabs <- crabs |> filter(Sex == "F")
+```
+
+Let's start with a scatter plot:
+
+```{r}
+ggplot(fcrabs, aes(Height, Weight))+
+     geom_point()+
+     ylab("Weight of crab (g)")+
+     theme_bw()
+```
+
+Looks like there's an outlier. Let's remove it.
+
+```{r}
+fcrabs <- fcrabs |> filter(Height < 2)
+ggplot(fcrabs, aes(Height, Weight))+
+     geom_point()+
+     labs(y = "Crab weight (g)", x = "Crab height (mm)")+
+     theme_bw()
+
+```
+
+## Interpreting the figure: biological insight
+
+We notice that the slope is positive. We can also guesstimate the slope and intercept from the figure.
+
+\- Roughly speaking, the weight of the crabs ranges between 1 and 78 grams
+
+\- Roughly speaking, the crab heights vary between 0.15 and 0.65 mm
+
+Slope is rise/run, which in this case is about (78 - 1) = 77 for rise and 0.65 - 0.15 = 0.5 for run, so we get 77/0.5 = 154 as the slope.
+
+Eyeballing the plot, we would also guess that the y-intercept is somewhere around -10
+
+IT IS ALWAYS A GOOD IDEA TO EXAMINE YOUR DATA BEFORE THE ANALYSIS AND TO SEE IF YOU CAN APPROXIMATE SOME OF THE VALUES THAT WILL RESULT.
+
+## Making a simple linear regression happen
+
+We use the `lm()` function...
+
+```{r}
+model_crabs <- lm(Weight ~ Height, data = fcrabs)
+```
+
+Ok, the model has been fit. Before we look at the results, let's consider the assumptions.
+
+We need to use the ggfortify package and the autoplot() function within it. The book suggests adding ggfortify at our top-level script from here on out.
+
+```{r}
+autoplot(model_crabs, smooth.color = NA)
+```
+
+What does this all mean? Top left - residuals vs. fitted:
+
+Is a line appropriate to fit to the data (vs. a non-linear model)? - look for hump shapes or valleys.
+
+Top right - Normal Q-Q plot: This evaluates the assumption that the residuals are normally distributed. The dots are the residuals and the dashed line is the expected values under a normal distribution. Basically, you want the dots to fall pretty close to the line (observed = expected).
+
+Bottom left - Scale - location: This evaluates the assumption of equal variance. The y-axis is a standardized (all positive) indicator of the variation. Linear models assume that the variance is constant over all predicted values of the response variable. There should be no pattern. (There might be a pattern, if, for instance, the variance increases with the mean as it might with count data).
+
+Bottom right - Residuals vs. leverage: This plot evaluates leverage, a tool that helps to detect influential data points and that also detects outliers.
+
+What does `smooth.color = NA` do? In the absence of this argument, the default presentation would be a wiggly line fitted by the regression. The NA suppresses that line.
+
+## Now the interpretation
+
+Now that we know that our data meet the assumptions of a linear regression, we can look at and interpret the model.
+
+We use two tools that we will use for every general (and generalized) model here on out: `anova()` and `summary()`.
+
+`anova()` does not perform an ANOVA. Instead, it produces a classic anova table, the sums-of-squares table including the F-statistic, which is the ratio of variance explained by the explanatory variable to the leftover variance. As well, it produces an estimate of R\^2 and adjusted R\^2.
+
+`summary()` is less confusing. It produces a table with the estimates of the coefficients of the line that is the model: an intercept and a slope.
+
+Take a look:
+
+```{r}
+anova(model_crabs)
+```
+
+And the summary table:
+
+```{r}
+summary(model_crabs)
+```
+
+## From stats back to figure
+
+Now let's make a figure that shows off our relationship in light of our statistical results.
+
+```{r}
+ggplot(fcrabs, aes(Height, Weight))+
+     geom_point()+
+     geom_smooth(method = "lm")+
+     labs(x = "Crab height (mm)", y = "Crab weight (g)")+
+     theme_bw()
+```
+
+We can see that the `geom_smooth()` call allowed the computer to add the fitted values and the standard error of the fit to a figure.
+
+Don't expect `geom_smooth()` to work correctly for more complex models.

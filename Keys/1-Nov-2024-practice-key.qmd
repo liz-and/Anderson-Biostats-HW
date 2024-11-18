@@ -1,0 +1,236 @@
+---
+title: "Nov-1-2024-practice.qmd"
+format: html
+editor: visual
+---
+
+## Introduction
+
+At this point, you have learned to perform and interpret three different statistical tests: Chi-square test of association (contingency analysis), two-sample t-test and linear regression.
+
+Now it is time for you to practice what you've been learning. Please add the data set called "A_morio_2014_plants.csv" to your Biostats-In-Class RStudio project as you will need it for this exercise. The data are associated with [this paper in the journal Evolution](https://academic.oup.com/evolut/article/70/3/716/6852093?login=true) and come from [this repository on Dryad](https://datadryad.org/stash/dataset/doi:10.5061/dryad.nf663). The authors of the study were interested in the degree to which pollinators apply selective pressure on a variety of flower traits in a species of orchid plant. In the experiment, some of the orchids were allowed to experience natural pollination and were considered the control group, and another group of orchids was pollinated by hand by the researchers (the "hand-pollinated" treatment group).
+
+### Initial set up and data examination
+
+I will set up my workspace and take a look at the data to become familiar with them.
+
+```{r}
+rm(list = ls())
+library(ggfortify)
+library(tidyverse)
+library(here)
+```
+
+Now pull in data
+
+```{r}
+plants <- read.csv(here("Data/A_morio_2014_plants.csv"))
+```
+
+### Question 1
+
+The researchers wished to know whether spur length (the "spur" is a part of the flower that sticks out) of flowers differed between control and hand-pollinated plants.
+
+Your task is to determine the appropriate statistical test you should use to answer this question from the data and then proceed with the statistical analysis, using the "plot your data (and guess the answer!) -\> build your model -\> check your assumptions -\> interpret your model" workflow (for now, we will leave out the last step which is to make a better plot at the end).
+
+I am expecting that you will document your process clearly along the way.
+
+------------------------------------------------------------------------
+
+#### Step 1. Look at the variables
+
+In this question, the response variable is spur length, which is ratio data. The predictor variable is treatment, which is a categorical variable. I have two groups within that category: control and hand-pollinated.
+
+Using my flow chart, I would deduce that I should be using a two-sample t-test to make this comparision.
+
+#### Step 2. Plot the data
+
+Let's take a look at the histogram of the spur length data, faceted by treatment. First, we need to make treatment a factor variable.
+
+```{r}
+#change treatment to factor
+plants$treatment <-as.factor(plants$treatment)
+#create plot
+ggplot(plants, aes(spur_length_mm))+
+  geom_histogram()+
+  facet_wrap(~treatment, ncol = 1)+
+  theme_bw()#optional
+```
+
+Interpret the plot:
+
+Eyeballing the data, it looks like mean spur length in control plants may be a bit higher than in hand-pollinated plants. Also, spur length appears to be more-or-less normally distributed and thus meets the assumptions of a t-test.
+
+I'm going to guess that mean spur length for control plants is about 11.5 mm and for hand-pollinated plants is about 10 mm.
+
+#### Step 3. Build the model
+
+As noted above, we need to run a t-test for our analysis. Let's do that now.
+
+```{r}
+spur_model <- t.test(spur_length_mm ~ treatment, data = plants)
+spur_model
+```
+
+#### Step 4. Check assumptions
+
+I addressed the assumptions under step 2 when I made plots of the data.
+
+#### Step 5. Interpret the model
+
+Our null hypothesis is that there is no difference in mean spur length between plants that are hand-pollinated vs. plants in the control group. Based on the results of the t-test, we can reject that null hypothesis and conclude that spur length in the control plants is significantly longer than in hand-pollinated plants (t = 2.0987, df = 303.83, p = 0.03666).
+
+#### Step 6 (not requested). Build a better plot.
+
+Let's plot a box and whisker plot to show the difference between these two samples.
+
+```{r}
+ggplot(plants, aes(treatment, spur_length_mm))+
+  geom_boxplot()+
+  geom_point(
+    aes(color = treatment), position = position_jitter(width = 0.05), alpha = 0.8)+
+  labs(x = "Experimental treatment", y = "Spur length (mm)")
+  theme_bw()
+```
+
+### Question 2
+
+The researchers wished to know if there was an association between plant height class and treatment group and the number of flowers produced by orchid plants.
+
+Your task is to determine the appropriate statistical test you should use to answer this question from the data and then proceed with the statistical analysis, using the "plot your data (and guess the answer!) -\> build your model -\> check your assumptions -\> interpret your model" workflow (for now, we will leave out the last step which is to make a better plot at the end).
+
+I am expecting that you will document your process clearly along the way.
+
+#### Step 1. Look at the variables
+
+The response variable is the number of flowers, which is a discrete variable, and the association we are looking at is between the plant height class and the treatment group. Plant height class looks like a factor variable with two levels: short and tall. We already determined that treatment is a factor variable. So, when I have a discrete response variable and two categorical predictors, I know I am dealing with a chi-square test of association.
+
+Our null hypothesis is that there is no association between plant heights and experimental treatment.
+
+#### Step 2. Plot the data
+
+Let's go ahead and get a plot of the data. To do so, I need to convert plant_ht_class to a factor variable as well. Because I'm dealing with count data, a bar plot would be a good choice. Also, I will have to summarise the data to get the count information that I need.
+
+```{r}
+#create factor 
+plants$plant_ht_class <- as.factor(plants$plant_ht_class)
+
+#summarise data
+flowers <- plants |> group_by(treatment, plant_ht_class) |> summarise(
+  total_flowers = sum(num_flowers)
+) 
+
+View(flowers)
+```
+
+Now we can make the plot
+
+```{r}
+ggplot(flowers, aes(treatment, total_flowers, group = plant_ht_class, fill = plant_ht_class))+
+  geom_bar(stat = "identity", position = "dodge")+
+  theme_bw()
+```
+
+Eyeballing the data, it looks like tall plants consistently produce more flowers than short plants, regardless of treatment. It does not look like there is much effect of treatment on number of flowers.
+
+#### Step 3. Create the model
+
+We don't worry about assumptions too much when running a chi-square test of association. But we do have to obtain a matrix of count data in order to run the test. So first we'll create that matrix:
+
+```{r}
+flower.mat <- xtabs(num_flowers ~ treatment + plant_ht_class, data = plants)
+flower.mat
+```
+
+Now we can run the test:
+
+```{r}
+chisq.test(flower.mat)
+```
+
+#### Step 4. Interpret the model
+
+In this case, with p well greater than 0.05, we cannot reject our null hypothesis, and we conclude that there is not an association between plant height class and treatment with regard to number of flowers produced by plants.
+
+### Question 3
+
+The researchers wished to know if there is an association between corolla area and spur length in hand-pollinated flowers.
+
+Your task is to determine the appropriate statistical test you should use to answer this question from the data and then proceed with the statistical analysis, using the "plot your data (and guess the answer!) -\> build your model -\> check your assumptions -\> interpret your model" workflow (for now, we will leave out the last step which is to make a better plot at the end).
+
+I am expecting that you will document your process clearly along the way.
+
+#### Step 1. Look at the variables
+
+Corolla area and pur length are both ratio data. Also, it is reasonable to expect that larger flowers (larger corolla area) might have larger spurs. When we are looking for an association between two continuous variables, we are likely going to need a regression.
+
+#### Step 2. Plot the data
+
+Let's see how the two variables look together
+
+```{r}
+ggplot(plants, aes(corolla_area_mm2, spur_length_mm))+
+  geom_point()+
+  labs(x = "Corolla area (square mm)", y = "Spur length (mm)")+
+  theme_bw()
+```
+
+Looks like there might be a weak positive association between the two variables.
+
+Guesstimating the slope: - Corolla area ranges between about 26 and 148. 148-26 = 122 - Spur length ranges between about 7 and 17. 17 - 7 = 10 Rise over run therefore = 10/122 = 0.082 for my approximate slope.
+
+Eyeballing the plot, it looks to me like the y-intercept might be at about 8.75.
+
+#### Step 3. Create the model
+
+Now let's create our regression model.
+
+```{r}
+spur_mod_2 <-lm(spur_length_mm ~ corolla_area_mm2, data = plants)
+```
+
+#### Step 4. Check the model assumptions
+
+Now that we have fit the model, we need to test our assumptions. For a linear regression, we are expecting that the response and predictor variables fit a normal distribution and that their variances are similar. We will use the `autoplot()` function from the `ggfortify` package to check.
+
+```{r}
+autoplot(spur_mod_2)
+```
+
+As we look through these, we see that in plot 1, the residuals vs. fitted values is what tells us if our data seem to be in keeping with a linear model. The horizontal blue line tells us that they look pretty good.
+
+To check if our data meet the assumption of normality, we look at the Normal Q-Q plot and look to see that most of the points fall on or close to the dashed line. Again, looks good.
+
+To check and see if our data meet the assumption of equal variances, we look at the Scale-Location plot and look to see that there is no real pattern in the data. Again, looks good.
+
+Finally, the residuals vs. leverage plot helps us to see if there are any points in our data set with unusual influence. Again, the result looks good.
+
+We can conclude that our data meet the assumptions for a linear regression and can move on to interpreting the model.
+
+#### Step 5. Interpret the model
+
+Now let's look at the results of our model and see if our hypothesis is supported or not.
+
+```{r}
+anova(spur_mod_2)
+```
+
+From this call, we see that our null hypothesis, that there is no relationship between corolla area and spurr length, can be rejected. We have a very small p-value indicating that there is a slope significantly different from zero.
+
+```{r}
+summary(spur_mod_2)
+```
+
+This output tells us a bit more. It tells us that, while our slope is significantly different from zero, the slope in this model is 0.02 with a y-intercept of 8.93. We also see that the adjusted R2 is 0.09399, which tells us that about 9% of the variation in spur length is related to corolla area. This is a nice example of a statistically significant relationship in which the predictor variable does not have a very strong influence on the response.
+
+#### Step 6. Make a new plot (not required)
+
+Now let's take another crack at our plot.
+
+```{r}
+ggplot(plants, aes(corolla_area_mm2, spur_length_mm))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  labs(x = "Corolla area (square mm)", y = "Spur length (mm)")+
+  theme_bw()
+```
