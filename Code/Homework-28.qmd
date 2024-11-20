@@ -1,0 +1,218 @@
+---
+title: "Homework 28 - chp 8"
+format: html
+editor: visual
+---
+
+# GSWR Chp 8
+
+This chapter focuses on making nice plots with ggplot.
+
+## Preparation
+
+Normal set up
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(here)
+library(ggplot2) #as said to do in the book
+```
+
+Need to get gridExtra package - installed using the console
+
+```{r}
+library(gridExtra) #load the package
+```
+
+Read in the data
+
+```{r}
+compensation <- read.csv(here("Data", "compensation.csv"))
+```
+
+### First graphs
+
+Start by making a scatterplot with Fruit and Root. Then make a box and whisker plot with grazing and fruit and assign both of these to an object. This is like what we did in chp 4.
+
+```{r}
+#BASE scatterplot
+eg_scatter <- 
+  ggplot(data=compensation, aes(x=Root, y=Fruit))+
+  geom_point()
+
+#BASE box-and-whiskers plot
+eg_box <- 
+  ggplot(data=compensation, aes(x=Grazing, y=Fruit))+
+  geom_boxplot()
+```
+
+Because they're saved, we can use and add to the figure.
+
+```{r}
+eg_scatter + theme_bw() #Adds the remove background function to the scatterplot saved
+```
+
+Now use the gridExtra package for some things. The gridExtra package is a helper package for placing more than one ggplot2 figure on the same page.
+
+```{r}
+grid.arrange(eg_scatter, eg_box, nrow=1) 
+#puts both the scatterplot and boxplot together on the same page!
+```
+
+## 8.3 - What you may want to customize
+
+Use `scale_()` functions for parts that are tied to the x and y variables (defined by `aes()`)
+
+Use `theme()` for parts of graph not directly determined by `aes()` like gridlines and text formatting.
+
+## 8.4 - Axis labels, axis limits, and annotation
+
+Recap - use `xlab` and `ylab` to change axis titles –\> only tell R what words to use, what to show
+
+```{r}
+eg_scatter + xlab("Root Biomass") + ylab("Fruit Production") #Change the axis names
+```
+
+`ggtitle` if need a title - rare and not recommended
+
+```{r}
+eg_scatter+ggtitle("My SUPERB title")
+```
+
+Can combine with `labs` the last two code chunks into:
+
+```{r}
+eg_scatter + labs(title="My useless title", x="Root Biomass", y="Fruit Production")
+```
+
+Changing the x and y axes... `xlim()` and `ylim()`
+
+```{r}
+eg_scatter + xlim(0, 20) + ylim(0, 140)
+```
+
+### Putting custom text inside the figure
+
+Using the `annotate()` function
+
+Need to specify: what kind of annotation (text), where to put annotation with the coordinate system of graph, what to write/the label
+
+```{r}
+eg_scatter +
+  annotate("text", x = c(6,8), y = c(105, 25), label=c("Text up here...", "...and text down here"))
+#Adds text (or other) to the figure - very neat
+```
+
+## 8.5 - Scales
+
+`scale_()` functions are tied to the variables being plotted (x and y)
+
+```{r}
+eg_scatter + scale_x_continuous(limits = c(4,11), breaks = 4:11)
+#limits adjusts range of x-axis
+#breaks specifies integer values where want tick marks
+```
+
+### **Changing colors and fills**
+
+Change colors based on levels of a grouping variable.
+
+```{r}
+ggplot(data=compensation, aes(x=Root, y=Fruit, colour=Grazing))+
+  geom_point()+
+  scale_colour_manual(values = c(Grazed = "brown", Ungrazed = "green"))
+```
+
+### **Transform the axis of the plot**
+
+log-transform the y-axis of a plot to manage non-linearity or emphasize extent of variation
+
+The trans = \_\_ can allocate many transformations to either or both of the x and y axes
+
+```{r}
+eg_box +
+  scale_y_continuous(breaks = seq(from = 10, to = 150, by = 20, trans = "log10"))
+
+# used seq() to generate vector of breakpoints for the ticks, then asked for log10 transformation
+```
+
+## 8.6 - The theme
+
+Use the `theme()` function to adjust the non-aesthetic pieces of a graph
+
+### panels and gridlines
+
+First graph - get rid of grey background and minor gridlines, generate light blue major gridlines
+
+```{r}
+eg_scatter +
+  theme(
+    panel.background = element_rect(fill = NA, colour = "black"), 
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(colour = "lightblue")
+  )
+
+```
+
+Breakdown of above code chunk:
+
+-   panel has theme elements that can be adjusted and correspond to figure features (here its background, grid minor, grid major)
+
+-   `element()` specifies arguments for the panel group geometric components (rectangles and lines)
+
+    -   Customize these with fill = \_\_ and colour = \_\_
+
+-   `element_blank()` shuts down all rendering of a `panel.()` component - here its to get rid of the minor grid lines
+
+### axis titles and tick marks
+
+Adjust the color and size of x-axis title and angle of the x-axis tick labels - helpful for text-based labels
+
+```{r}
+eg_box +
+  theme(
+    axis.title.x = element_text(colour = "cornflowerblue",
+    size = rel(2)),
+    axis.text.x = element_text(angle = 45, size = 13, vjust = 0.5)
+  )
+```
+
+Breakdown:
+
+-   `axis.()` class of attributes centers on manipulating text elements `element_text()` using arguments of size = \_\_ or size = rel(2) which increases size relative to default
+
+-   vjust = \_\_ takes values b/w 0 and 1 to vertically adjust the labels
+
+### discrete-axis customizations
+
+Discrete axes delineate different groups of data according to the values of a categorical variables - represented by a factor or character vector in R - small number of unique values.
+
+Use `scale_x_discrete()` or `scale_y_discrete()` to customize labeling of groups
+
+Alter the names of the levels on graphs:
+
+```{r}
+eg_box + scale_x_discrete(limits = c("Ungrazed", "Grazed"),
+                          labels = c("Control", "Grazed"))
+```
+
+### customizing legends/keys
+
+Generate a "clean" key:
+
+```{r}
+ggplot(compensation, aes(x=Root, y=Fruit, colour=Grazing))+
+  geom_point()+
+  theme(legend.key = element_rect(fill=NA)) #this line removes the borders of the key
+```
+
+Have no key:
+
+```{r}
+ggplot(compensation, aes(x=Root, y=Fruit, colour=Grazing))+
+  geom_point()+
+  theme(legend.position = "none") #this line removes the key
+```
+
+All done with Chp 8!
